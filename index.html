@@ -8,12 +8,15 @@
   <!-- ✅ Memberstack App ID -->
   <script>
     window.$memberstackDom = {
-      app_id: "app_cmay7ckcx011o0wqa3ew1btag"
-    }
+      app_id: "app_cmay031ed01w60wre153u14z8"
+    };
   </script>
 
   <!-- ✅ Load Memberstack -->
   <script src="https://api.memberstack.io/static/memberstack.js?custom"></script>
+
+  <!-- Optional favicon fix -->
+  <link rel="icon" href="data:,">
 
   <style>
     body {
@@ -23,17 +26,17 @@
       padding: 2rem;
     }
 
-    .dashboard {
+    .welcome, .dashboard {
       max-width: 800px;
       margin: auto;
       background: white;
       padding: 2rem;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      display: none; /* hidden by default until logged in */
+      display: none;
     }
 
-    h2, h3 {
+    h1, h2, h3 {
       color: #333;
     }
 
@@ -58,47 +61,35 @@
     }
 
     .auth-links {
-      text-align: right;
-      margin-bottom: 1rem;
-    }
-
-    #signup-required-message {
       text-align: center;
-      font-size: 1.2rem;
-      margin-top: 3rem;
-      display: none;
+      margin-top: 2rem;
     }
   </style>
 </head>
 <body>
 
-  <!-- 🔐 Auth Buttons -->
-  <div class="auth-links">
-    <a href="#" data-ms-modal="signup">Sign Up</a> |
-    <a href="#" data-ms-modal="login">Log In</a> |
-    <a href="#" data-ms-action="logout">Log Out</a>
+  <!-- 🔐 Welcome Screen -->
+  <div class="welcome" id="welcome-screen">
+    <h1>Welcome to Your Weekly Portal</h1>
+    <p>Please log in or sign up to access your personalized dashboard.</p>
+    <div class="auth-links">
+      <a href="#" data-ms-modal="signup">Sign Up</a> |
+      <a href="#" data-ms-modal="login">Log In</a>
+    </div>
   </div>
 
-  <!-- 🔒 Message for users not logged in -->
-  <div id="signup-required-message">
-    <p>Please <a href="#" data-ms-modal="signup">sign up</a> or <a href="#" data-ms-modal="login">log in</a> to view your dashboard.</p>
-  </div>
-
-  <!-- ✅ Dashboard Content (hidden until logged in) -->
+  <!-- ✅ Dashboard (Hidden until login) -->
   <div class="dashboard" id="dashboard">
-    <h2>Welcome, <span data-ms-member="email">[email]</span></h2>
-
-    <div class="info-box">
-      <strong>Your Master ID:</strong>
-      <span id="master-id">Loading...</span>
+    <div class="auth-links" style="text-align: right;">
+      <a href="#" data-ms-action="logout">Log Out</a>
     </div>
 
-    <h3>Your Qualtrics Surveys</h3>
+    <h2>Your Weekly Surveys</h2>
     <ul id="survey-links">
       <li>Loading surveys...</li>
     </ul>
 
-    <div id="weekly-reports" style="margin-top: 2rem;">
+    <div style="margin-top: 2rem;">
       <h3>Your Weekly Reports</h3>
       <ul id="report-list">
         <li>Checking for reports...</li>
@@ -106,61 +97,65 @@
     </div>
   </div>
 
-  <!-- 🔄 Memberstack Personalization Script -->
+  <!-- 💡 Script: Show Welcome or Dashboard -->
   <script>
-    MemberStack.onReady.then(async function(member) {
-      // Handle login state
-      if (!member.loggedIn) {
-        document.getElementById("signup-required-message").style.display = "block";
-        return;
-      }
+    document.addEventListener("DOMContentLoaded", function () {
+      MemberStack.onReady.then(async function (member) {
+        const welcome = document.getElementById("welcome-screen");
+        const dashboard = document.getElementById("dashboard");
 
-      // Show dashboard now that user is authenticated
-      document.getElementById("dashboard").style.display = "block";
-      document.getElementById("signup-required-message").style.display = "none";
-
-      const masterid = member["masterid"];
-      document.getElementById("master-id").textContent = masterid;
-
-      // ✅ Your Qualtrics Survey Links (personalized)
-      const surveyBaseURLs = [
-        "https://cab.co1.qualtrics.com/jfe/form/SV_2gVQ3ByhXJ2xmTA",
-        "https://cab.co1.qualtrics.com/jfe/form/SV_4Pb4JXt2cwIsNg2",
-        "https://cab.co1.qualtrics.com/jfe/form/SV_3QU7HVSeTL9hygS",
-        "https://cab.co1.qualtrics.com/jfe/form/SV_1Ui0JYJEf6emDrM",
-        "https://cab.co1.qualtrics.com/jfe/form/SV_cD7LCIGiT1yc08S",
-        "https://cab.co1.qualtrics.com/jfe/form/SV_9X0tZDsmwPVYunI"
-      ];
-
-      const surveyLinks = surveyBaseURLs.map((url, index) => {
-        const fullURL = `${url}?masterid=${masterid}`;
-        return `<li><a href="${fullURL}" target="_blank">Survey ${index + 1}</a></li>`;
-      }).join("");
-      document.getElementById("survey-links").innerHTML = surveyLinks;
-
-      // ✅ Weekly Reports (check for existence)
-      const reportBaseURL = "https://drive.drv.tw/your-folder-name/"; // <-- replace with your real folder
-      const reportList = document.getElementById("report-list");
-      reportList.innerHTML = "";
-
-      for (let i = 1; i <= 6; i++) {
-        const filename = `${masterid}_week${i}.pdf`;
-        const reportURL = `${reportBaseURL}${filename}`;
-
-        try {
-          const response = await fetch(reportURL, { method: 'HEAD' });
-          if (response.ok) {
-            const listItem = `<li><a href="${reportURL}" target="_blank">Week ${i} Report</a></li>`;
-            reportList.innerHTML += listItem;
-          }
-        } catch (err) {
-          // Silent fail if fetch fails
+        if (!member.loggedIn) {
+          welcome.style.display = "block";
+          return;
         }
-      }
 
-      if (reportList.innerHTML.trim() === "") {
-        reportList.innerHTML = "<li>No reports available yet.</li>";
-      }
+        // ✅ Show dashboard if logged in
+        welcome.style.display = "none";
+        dashboard.style.display = "block";
+
+        const masterid = member["masterid"];
+
+        // ✅ Personalize survey links
+        const surveyBaseURLs = [
+          "https://cab.co1.qualtrics.com/jfe/form/SV_2gVQ3ByhXJ2xmTA",
+          "https://cab.co1.qualtrics.com/jfe/form/SV_4Pb4JXt2cwIsNg2",
+          "https://cab.co1.qualtrics.com/jfe/form/SV_3QU7HVSeTL9hygS",
+          "https://cab.co1.qualtrics.com/jfe/form/SV_1Ui0JYJEf6emDrM",
+          "https://cab.co1.qualtrics.com/jfe/form/SV_cD7LCIGiT1yc08S",
+          "https://cab.co1.qualtrics.com/jfe/form/SV_9X0tZDsmwPVYunI"
+        ];
+
+        const surveyLinks = surveyBaseURLs.map((url, index) => {
+          const fullURL = `${url}?masterid=${masterid}`;
+          return `<li><a href="${fullURL}" target="_blank">Survey ${index + 1}</a></li>`;
+        }).join("");
+
+        document.getElementById("survey-links").innerHTML = surveyLinks;
+
+        // ✅ Check for reports in a public folder
+        const reportBaseURL = "https://drive.drv.tw/your-folder-name/"; // <-- Update this!
+        const reportList = document.getElementById("report-list");
+        reportList.innerHTML = "";
+
+        for (let i = 1; i <= 6; i++) {
+          const filename = `${masterid}_week${i}.pdf`;
+          const reportURL = `${reportBaseURL}${filename}`;
+
+          try {
+            const response = await fetch(reportURL, { method: 'HEAD' });
+            if (response.ok) {
+              const listItem = `<li><a href="${reportURL}" target="_blank">Week ${i} Report</a></li>`;
+              reportList.innerHTML += listItem;
+            }
+          } catch (err) {
+            // fail silently
+          }
+        }
+
+        if (reportList.innerHTML.trim() === "") {
+          reportList.innerHTML = "<li>No reports available yet.</li>";
+        }
+      });
     });
   </script>
 </body>
