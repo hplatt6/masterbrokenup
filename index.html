@@ -5,19 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Welcome Portal</title>
 
-  <!-- ✅ Memberstack App ID -->
-  <script>
-    window.$memberstackDom = {
-      app_id: "app_cmay031ed01w60wre153u14z8"
-    };
-  </script>
+  <!-- ✅ Simple Memberstack Script (no custom version) -->
+  <script src="https://api.memberstack.com/v1/memberstack.js?app_id=app_cmay031ed01w60wre153u14z8" type="text/javascript"></script>
 
-  <!-- ✅ Load Memberstack -->
-  <script src="https://api.memberstack.io/static/memberstack.js?custom"></script>
-
-  <!-- Optional: Prevent favicon 404 -->
   <link rel="icon" href="data:,">
-
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -54,7 +45,7 @@
 </head>
 <body>
 
-  <!-- 🔐 Welcome Screen (Default) -->
+  <!-- 🔐 Welcome Screen -->
   <div class="container welcome" id="welcome">
     <h1>Welcome to the Weekly Portal</h1>
     <p>Please log in or sign up to continue.</p>
@@ -64,41 +55,36 @@
     </div>
   </div>
 
-  <!-- ✅ Dashboard (Visible only after login) -->
+  <!-- ✅ Dashboard (after login) -->
   <div class="container dashboard" id="dashboard">
     <h2>You’re Logged In 🎉</h2>
     <p>This is your dashboard. You’ll see surveys and reports here later.</p>
     <p><a href="#" data-ms-action="logout">Log Out</a></p>
   </div>
 
-  <!-- ✅ JavaScript: Wait for Memberstack to be Ready -->
+  <!-- ✅ JavaScript -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      function checkMemberstackReady(callback) {
-        if (typeof MemberStack !== "undefined") {
-          MemberStack.onReady.then(callback);
+      // Wait for Memberstack to become ready
+      const welcome = document.getElementById("welcome");
+      const dashboard = document.getElementById("dashboard");
+
+      const check = setInterval(() => {
+        if (typeof MemberStack !== "undefined" && MemberStack.onReady) {
+          clearInterval(check);
+          MemberStack.onReady.then(function(member) {
+            if (member.loggedIn) {
+              welcome.style.display = "none";
+              dashboard.style.display = "block";
+            } else {
+              welcome.style.display = "block";
+              dashboard.style.display = "none";
+            }
+          });
         } else {
           console.log("⏳ Waiting for Memberstack...");
-          setTimeout(() => checkMemberstackReady(callback), 200);
         }
-      }
-
-      checkMemberstackReady(async function (member) {
-        console.log("✅ Memberstack ready:", member);
-
-        const welcome = document.getElementById("welcome");
-        const dashboard = document.getElementById("dashboard");
-
-        if (member.loggedIn) {
-          welcome.style.display = "none";
-          dashboard.style.display = "block";
-
-          // 👉 You can load reports and surveys here in the future
-        } else {
-          welcome.style.display = "block";
-          dashboard.style.display = "none";
-        }
-      });
+      }, 200);
     });
   </script>
 </body>
