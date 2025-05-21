@@ -68,22 +68,22 @@
 
   <script>
     MemberStack.onReady.then(function(member) {
-      const masterid = member["masterod"];
-      const reportBaseURL = "https://drive.google.com/your-folder/"; // Update this!
+      const masterid = member["masterid"]; // ✅ fixed typo here
+
+      // Show the master ID on the page
+      document.getElementById("master-id").textContent = masterid;
+
+      const reportBaseURL = "https://drive.google.com/your-folder/"; // TODO: update this
       const reportFileName = `${masterid}_report.pdf`;
       const reportURL = `${reportBaseURL}${reportFileName}`;
-
-      // Update the report link
       document.getElementById("report-link").href = reportURL;
 
-      // Define your Qualtrics base URLs
       const surveyBaseURLs = [
         "https://your.qualtrics.com/jfe/form/SV_survey1",
         "https://your.qualtrics.com/jfe/form/SV_survey2",
         "https://your.qualtrics.com/jfe/form/SV_survey3"
       ];
 
-      // Generate survey links with masterID
       const linksHTML = surveyBaseURLs.map((url, index) => {
         const fullUrl = `${url}?masterid=${masterid}`;
         return `<li><a href="${fullUrl}" target="_blank">Survey ${index + 1}</a></li>`;
