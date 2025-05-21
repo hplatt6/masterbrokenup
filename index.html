@@ -48,7 +48,7 @@
 
     <div class="info-box">
       <strong>Your Master ID:</strong>
-      <span data-ms-member="masterID" id="master-id">[masterID]</span>
+      <span data-ms-member="masterid" id="master-id">[masterid]</span>
     </div>
 
     <div id="surveys">
@@ -68,9 +68,9 @@
 
   <script>
     MemberStack.onReady.then(function(member) {
-      const masterID = member["masterID"];
+      const masterid = member["masterod"];
       const reportBaseURL = "https://drive.google.com/your-folder/"; // Update this!
-      const reportFileName = `${masterID}_report.pdf`;
+      const reportFileName = `${masterid}_report.pdf`;
       const reportURL = `${reportBaseURL}${reportFileName}`;
 
       // Update the report link
@@ -85,7 +85,7 @@
 
       // Generate survey links with masterID
       const linksHTML = surveyBaseURLs.map((url, index) => {
-        const fullUrl = `${url}?masterID=${masterID}`;
+        const fullUrl = `${url}?masterid=${masterid}`;
         return `<li><a href="${fullUrl}" target="_blank">Survey ${index + 1}</a></li>`;
       }).join("");
 
