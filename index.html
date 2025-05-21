@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Welcome Portal</title>
 
-  <!-- Memberstack App ID -->
+  <!-- ✅ Memberstack App ID -->
   <script>
     window.$memberstackDom = {
       app_id: "app_cmay031ed01w60wre153u14z8"
     };
   </script>
-  <!-- Load Memberstack -->
+
+  <!-- ✅ Load Memberstack -->
   <script src="https://api.memberstack.io/static/memberstack.js?custom"></script>
+
+  <!-- Optional: Prevent favicon 404 -->
   <link rel="icon" href="data:,">
 
   <style>
@@ -51,6 +54,7 @@
 </head>
 <body>
 
+  <!-- 🔐 Welcome Screen (Default) -->
   <div class="container welcome" id="welcome">
     <h1>Welcome to the Weekly Portal</h1>
     <p>Please log in or sign up to continue.</p>
@@ -60,41 +64,42 @@
     </div>
   </div>
 
+  <!-- ✅ Dashboard (Visible only after login) -->
   <div class="container dashboard" id="dashboard">
-    <h2>You're Logged In 🎉</h2>
-    <p>This is your dashboard. You’ll see surveys and reports here.</p>
+    <h2>You’re Logged In 🎉</h2>
+    <p>This is your dashboard. You’ll see surveys and reports here later.</p>
     <p><a href="#" data-ms-action="logout">Log Out</a></p>
   </div>
 
+  <!-- ✅ JavaScript: Wait for Memberstack to be Ready -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      // Wait for Memberstack to fully load
-      const welcome = document.getElementById("welcome");
-      const dashboard = document.getElementById("dashboard");
-
-      if (typeof MemberStack === "undefined") {
-        console.warn("Memberstack is not ready yet.");
-        return;
+      function checkMemberstackReady(callback) {
+        if (typeof MemberStack !== "undefined") {
+          MemberStack.onReady.then(callback);
+        } else {
+          console.log("⏳ Waiting for Memberstack...");
+          setTimeout(() => checkMemberstackReady(callback), 200);
+        }
       }
 
-      MemberStack.onReady.then(async function(member) {
+      checkMemberstackReady(async function (member) {
+        console.log("✅ Memberstack ready:", member);
+
+        const welcome = document.getElementById("welcome");
+        const dashboard = document.getElementById("dashboard");
+
         if (member.loggedIn) {
-          console.log("✅ Logged in");
           welcome.style.display = "none";
           dashboard.style.display = "block";
 
-          // 🎯 At this point, you can safely:
-          // - fetch reports
-          // - personalize dashboard
-          // - show surveys
+          // 👉 You can load reports and surveys here in the future
         } else {
-          console.log("👋 Not logged in");
           welcome.style.display = "block";
           dashboard.style.display = "none";
         }
       });
     });
   </script>
-
 </body>
 </html>
