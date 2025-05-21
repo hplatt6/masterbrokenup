@@ -5,7 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Personal Dashboard</title>
 
-  <!-- Load Memberstack -->
+  <!-- ✅ Memberstack App ID -->
+  <script>
+    window.$memberstackDom = {
+      app_id: "app_cmay031ed01w60wre153u14z8"
+    }
+  </script>
+
+  <!-- ✅ Load Memberstack -->
   <script src="https://api.memberstack.io/static/memberstack.js?custom"></script>
 
   <style>
@@ -23,6 +30,7 @@
       padding: 2rem;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: none; /* hidden by default until logged in */
     }
 
     h2, h3 {
@@ -53,19 +61,31 @@
       text-align: right;
       margin-bottom: 1rem;
     }
+
+    #signup-required-message {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-top: 3rem;
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-  <!-- 🔐 Authentication Links -->
+  <!-- 🔐 Auth Buttons -->
   <div class="auth-links">
     <a href="#" data-ms-modal="signup">Sign Up</a> |
     <a href="#" data-ms-modal="login">Log In</a> |
     <a href="#" data-ms-action="logout">Log Out</a>
   </div>
 
-  <!-- 📋 Dashboard Content -->
-  <div class="dashboard">
+  <!-- 🔒 Message for users not logged in -->
+  <div id="signup-required-message">
+    <p>Please <a href="#" data-ms-modal="signup">sign up</a> or <a href="#" data-ms-modal="login">log in</a> to view your dashboard.</p>
+  </div>
+
+  <!-- ✅ Dashboard Content (hidden until logged in) -->
+  <div class="dashboard" id="dashboard">
     <h2>Welcome, <span data-ms-member="email">[email]</span></h2>
 
     <div class="info-box">
@@ -86,18 +106,23 @@
     </div>
   </div>
 
-  <!-- 💡 Personalization Script -->
+  <!-- 🔄 Memberstack Personalization Script -->
   <script>
     MemberStack.onReady.then(async function(member) {
+      // Handle login state
       if (!member.loggedIn) {
-        document.getElementById("master-id").textContent = "Please log in.";
+        document.getElementById("signup-required-message").style.display = "block";
         return;
       }
+
+      // Show dashboard now that user is authenticated
+      document.getElementById("dashboard").style.display = "block";
+      document.getElementById("signup-required-message").style.display = "none";
 
       const masterid = member["masterid"];
       document.getElementById("master-id").textContent = masterid;
 
-      // ✅ Set your Qualtrics survey links here
+      // ✅ Your Qualtrics Survey Links (personalized)
       const surveyBaseURLs = [
         "https://cab.co1.qualtrics.com/jfe/form/SV_2gVQ3ByhXJ2xmTA",
         "https://cab.co1.qualtrics.com/jfe/form/SV_4Pb4JXt2cwIsNg2",
@@ -107,20 +132,16 @@
         "https://cab.co1.qualtrics.com/jfe/form/SV_9X0tZDsmwPVYunI"
       ];
 
-      // ✅ Display the personalized survey links
       const surveyLinks = surveyBaseURLs.map((url, index) => {
         const fullURL = `${url}?masterid=${masterid}`;
         return `<li><a href="${fullURL}" target="_blank">Survey ${index + 1}</a></li>`;
       }).join("");
-
       document.getElementById("survey-links").innerHTML = surveyLinks;
 
-      // ✅ Report hosting folder (use DriveToWeb, Netlify, etc.)
-      const reportBaseURL = "https://drive.drv.tw/your-folder-name/"; // <-- CHANGE THIS
-
-      // ✅ Weekly report file names: masterid_week1.pdf through masterid_week6.pdf
+      // ✅ Weekly Reports (check for existence)
+      const reportBaseURL = "https://drive.drv.tw/your-folder-name/"; // <-- replace with your real folder
       const reportList = document.getElementById("report-list");
-      reportList.innerHTML = ""; // clear placeholder
+      reportList.innerHTML = "";
 
       for (let i = 1; i <= 6; i++) {
         const filename = `${masterid}_week${i}.pdf`;
@@ -128,13 +149,12 @@
 
         try {
           const response = await fetch(reportURL, { method: 'HEAD' });
-
           if (response.ok) {
             const listItem = `<li><a href="${reportURL}" target="_blank">Week ${i} Report</a></li>`;
             reportList.innerHTML += listItem;
           }
         } catch (err) {
-          // Silent fail if file doesn't exist or can't be fetched
+          // Silent fail if fetch fails
         }
       }
 
@@ -143,6 +163,5 @@
       }
     });
   </script>
-
 </body>
 </html>
