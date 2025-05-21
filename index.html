@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Dashboard</title>
+
+  <!-- Load Memberstack -->
+  <script src="https://api.memberstack.io/static/memberstack.js?custom"></script>
+
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -38,59 +42,92 @@
       border-left: 4px solid #34a853;
       margin-bottom: 1.5rem;
     }
+    .auth-links {
+      text-align: right;
+      margin-bottom: 1rem;
+    }
   </style>
-  <!-- Load Memberstack -->
-  <script src="https://api.memberstack.io/static/memberstack.js?custom"></script>
 </head>
 <body>
+
+  <!-- 🔐 Sign Up / Log In / Log Out Buttons -->
+  <div class="auth-links">
+    <a href="#" data-ms-modal="signup">Sign Up</a> |
+    <a href="#" data-ms-modal="login">Log In</a> |
+    <a href="#" data-ms-action="logout">Log Out</a>
+  </div>
+
+  <!-- 📋 Dashboard content -->
   <div class="dashboard">
     <h2>Welcome, <span data-ms-member="email">[email]</span></h2>
 
     <div class="info-box">
       <strong>Your Master ID:</strong>
-      <span data-ms-member="masterid" id="master-id">[masterid]</span>
+      <span id="master-id">Loading...</span>
     </div>
 
-    <div id="surveys">
-      <h3>Your Surveys</h3>
-      <ul id="survey-links">
-        <li>Loading survey links...</li>
-      </ul>
-    </div>
+    <h3>Your Surveys</h3>
+    <ul id="survey-links">
+      <li>Loading surveys...</li>
+    </ul>
 
     <div id="reports" style="margin-top: 2rem;">
       <h3>Your Report</h3>
-      <p>
-        <a id="report-link" href="#" target="_blank">Click here to view your report</a>
-      </p>
+      <a id="report-link" href="#" target="_blank">Click here to view your report</a>
     </div>
   </div>
 
+  <!-- 💡 Memberstack personalization script -->
   <script>
-    MemberStack.onReady.then(function(member) {
-      const masterid = member["masterid"]; // ✅ fixed typo here
+    MemberStack.onReady.then(async function(member) {
+      // Check if the user is logged in
+      if (!member.loggedIn) {
+        document.getElementById("master-id").textContent = "Please log in.";
+        return;
+      }
 
-      // Show the master ID on the page
+      // Get the user's master ID
+      const masterid = member["masterid"]; // Make sure the field in Memberstack is lowercase 'masterid'
+
+      // Show the master ID
       document.getElementById("master-id").textContent = masterid;
 
-      const reportBaseURL = "https://drive.google.com/your-folder/"; // TODO: update this
-      const reportFileName = `${masterid}_report.pdf`;
-      const reportURL = `${reportBaseURL}${reportFileName}`;
-      document.getElementById("report-link").href = reportURL;
-
+      // ✅ Set your Qualtrics survey links here
       const surveyBaseURLs = [
-        "https://your.qualtrics.com/jfe/form/SV_survey1",
-        "https://your.qualtrics.com/jfe/form/SV_survey2",
-        "https://your.qualtrics.com/jfe/form/SV_survey3"
+        "https://cab.co1.qualtrics.com/jfe/form/SV_2gVQ3ByhXJ2xmTA",
+        "https://cab.co1.qualtrics.com/jfe/form/SV_4Pb4JXt2cwIsNg2",
+        "https://cab.co1.qualtrics.com/jfe/form/SV_3QU7HVSeTL9hygS",
+        "https://cab.co1.qualtrics.com/jfe/form/SV_1Ui0JYJEf6emDrM",
+        "https://cab.co1.qualtrics.com/jfe/form/SV_cD7LCIGiT1yc08S",
+        "https://cab.co1.qualtrics.com/jfe/form/SV_9X0tZDsmwPVYunI"
       ];
 
+      // Append masterid to each survey link and display
       const linksHTML = surveyBaseURLs.map((url, index) => {
         const fullUrl = `${url}?masterid=${masterid}`;
         return `<li><a href="${fullUrl}" target="_blank">Survey ${index + 1}</a></li>`;
       }).join("");
 
       document.getElementById("survey-links").innerHTML = linksHTML;
+
+      // ✅ Check if report exists and only show it if available
+      const reportBaseURL = "https://yourdomain.com/reports/"; // TODO: Change this to your real URL or hosting path
+      const reportFileName = `${masterid}_report.pdf`;
+      const reportURL = `${reportBaseURL}${reportFileName}`;
+
+      fetch(reportURL, { method: 'HEAD' })
+        .then(response => {
+          if (response.ok) {
+            document.getElementById("report-link").href = reportURL;
+          } else {
+            document.getElementById("reports").style.display = "none";
+          }
+        })
+        .catch(() => {
+          document.getElementById("reports").style.display = "none";
+        });
     });
   </script>
+
 </body>
 </html>
