@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Memberstack Test</title>
+
+  <!-- Memberstack App ID -->
+  <script>
+    window.$memberstackDom = {
+      app_id: "app_cmay031ed01w60wre153u14z8"
+    };
+  </script>
+
+  <!-- Load Memberstack -->
+  <script src="https://api.memberstack.io/static/memberstack.js?custom"></script>
+</head>
+<body>
+  <h1>Hello from Memberstack Test</h1>
+
+  <a href="#" data-ms-modal="signup">Sign Up</a> |
+  <a href="#" data-ms-modal="login">Log In</a>
+
+  <script>
+    setTimeout(() => {
+      console.log("typeof MemberStack:", typeof MemberStack);
+    }, 2000);
+  </script>
+</body>
+</html>
