@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 2rem;
+    }
+    .dashboard {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2, h3 {
+      color: #333;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    a {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .info-box {
+      background: #e6f4ea;
+      padding: 1rem;
+      border-left: 4px solid #34a853;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+  <!-- Load Memberstack -->
+  <script src="https://api.memberstack.io/static/memberstack.js?custom"></script>
+</head>
+<body>
+  <div class="dashboard">
+    <h2>Welcome, <span data-ms-member="email">[email]</span></h2>
+
+    <div class="info-box">
+      <strong>Your Master ID:</strong>
+      <span data-ms-member="masterID" id="master-id">[masterID]</span>
+    </div>
+
+    <div id="surveys">
+      <h3>Your Surveys</h3>
+      <ul id="survey-links">
+        <li>Loading survey links...</li>
+      </ul>
+    </div>
+
+    <div id="reports" style="margin-top: 2rem;">
+      <h3>Your Report</h3>
+      <p>
+        <a id="report-link" href="#" target="_blank">Click here to view your report</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    MemberStack.onReady.then(function(member) {
+      const masterID = member["masterID"];
+      const reportBaseURL = "https://drive.google.com/your-folder/"; // Update this!
+      const reportFileName = `${masterID}_report.pdf`;
+      const reportURL = `${reportBaseURL}${reportFileName}`;
+
+      // Update the report link
+      document.getElementById("report-link").href = reportURL;
+
+      // Define your Qualtrics base URLs
+      const surveyBaseURLs = [
+        "https://your.qualtrics.com/jfe/form/SV_survey1",
+        "https://your.qualtrics.com/jfe/form/SV_survey2",
+        "https://your.qualtrics.com/jfe/form/SV_survey3"
+      ];
+
+      // Generate survey links with masterID
+      const linksHTML = surveyBaseURLs.map((url, index) => {
+        const fullUrl = `${url}?masterID=${masterID}`;
+        return `<li><a href="${fullUrl}" target="_blank">Survey ${index + 1}</a></li>`;
+      }).join("");
+
+      document.getElementById("survey-links").innerHTML = linksHTML;
+    });
+  </script>
+</body>
+</html>
